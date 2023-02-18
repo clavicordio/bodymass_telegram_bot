@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+  bot:
+    build: .
+    environment: 
+      - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
+    volumes:
+      - type: bind
+        source: ./logs
+        target: /app/logs
+      - type: bind
+        source: ./data
+        target: /app/data
+    restart: always
+    deploy:
+        resources:
+          limits:
+            cpus: '0.1'
+            memory: 50M
+      
