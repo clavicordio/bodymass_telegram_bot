@@ -66,14 +66,14 @@ def random_hash() -> str:
     return uuid.uuid4().hex[:8]
 
 
-async def plot_user_data(user_id: int, only_two_weeks: bool = False) -> tuple[str, Optional[np.array]]:
+async def plot_user_data(user_id: int, only_two_weeks: bool = False) -> tuple[str, Optional[np.array], float]:
     """Plot user data to an image.
 
     Keyword arguments:
     :param user_id: user id
     :param only_two_weeks: draw progress only for the past 2 weeks
 
-    :return: image temporary file path, speed kg/week
+    :return: image temporary file path, speed kg/week, mean body mass
     """
     os.makedirs(plot_tmp_folder, exist_ok=True)
     plot_file_path = os.path.join(plot_tmp_folder,
@@ -93,7 +93,7 @@ async def plot_user_data(user_id: int, only_two_weeks: bool = False) -> tuple[st
     regression_coef = draw_plot_mass(date_list, mass_list, plot_file_path)
     speed_kg_week = round(regression_coef[0] * 7, 2) if regression_coef is not None else None
 
-    return plot_file_path, speed_kg_week
+    return plot_file_path, speed_kg_week, float(np.mean(mass_list))
 
 
 def draw_plot_mass(date: list[datetime], mass: list[float], file_path: str) -> Optional[np.array]:
