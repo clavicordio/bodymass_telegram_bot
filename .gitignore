@@ -1,6 +1,7 @@
 data/tmp/
 data/*.sqlite
 logs/*
+.idea/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

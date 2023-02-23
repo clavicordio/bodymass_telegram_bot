@@ -3,6 +3,7 @@ import logging.handlers
 import os
 import sys
 from datetime import datetime
+from typing import Optional
 
 from telebot.async_telebot import AsyncTeleBot
 from telebot import types
@@ -141,6 +142,29 @@ async def reply_enter_weight(message: types.Message, user_data):
     user_data['conversation_state'] = ConversationState.awaiting_body_weight
 
 
+def text_deficit_maintenance_surplus(speed_week_kg: Optional[float], mean_mass: float) -> str:
+    text = ""
+    if speed_week_kg is not None:
+        maintenance_threshold = mean_mass * src.config.MAINTENANCE_THRESHOLD
+        if abs(speed_week_kg) < maintenance_threshold:
+            text += "\nYou are currently <i>maintaining</i> your body weight.\n"
+        else:
+            if speed_week_kg > 0:
+                text += "\nYou are currently in a <i>calorie surplus</i>.\n"
+            else:
+                text += "\nYou are currently in a <i>calorie deficit</i>.\n"
+
+        if speed_week_kg > 0:
+            text += "You are gaining weight at an average rate of <i>%.2f kg/week</i>\n" % speed_week_kg
+        elif speed_week_kg <= 0:
+            text += "You are losing weight at an average rate of <i>%.2f kg/week</i>\n" % abs(speed_week_kg)
+
+        if abs(speed_week_kg) < maintenance_threshold:
+            text += "(which is too slow to classify as a surplus or a deficit)\n"
+
+    return text
+
+
 async def reply_body_weight(message: types.Message, user_data):
     try:
         body_weight = float(message.text.strip())
@@ -151,16 +175,10 @@ async def reply_body_weight(message: types.Message, user_data):
         return
 
     await add_record_now(message.chat.id, body_weight)
-    img_path, speed_week_kg = await plot_user_data(message.chat.id, only_two_weeks=True)
+    img_path, speed_week_kg, mean_mass = await plot_user_data(message.chat.id, only_two_weeks=True)
     with open(img_path, 'rb') as img_file_object:
         text = f"Successfully added a new entry:\n<b>{datetime.now().strftime(date_format)} - {body_weight} kg</b>\n"
-        if speed_week_kg is not None:
-            if speed_week_kg > 0:
-                text += "\nYou are currently in a <i>calorie surplus</i>.\n"
-                text += "You are gaining weight at an average rate of <i>%.2f kg/week</i>\n" % speed_week_kg
-            elif speed_week_kg <= 0:
-                text += "\nYou are currently in a <i>calorie deficit</i>.\n"
-                text += "You are losing weight at an average rate of <i>%.2f kg/week</i>\n" % abs(speed_week_kg)
+        text += text_deficit_maintenance_surplus(speed_week_kg, mean_mass)
 
         await bot.send_photo(message.chat.id, caption=text,
                              photo=img_file_object,
@@ -176,16 +194,10 @@ async def reply_body_weight(message: types.Message, user_data):
 
 
 async def reply_plot(message: types.Message, user_data: dict):
-    img_path, speed_week_kg = await plot_user_data(message.chat.id, only_two_weeks=True)
+    img_path, speed_week_kg, mean_mass = await plot_user_data(message.chat.id, only_two_weeks=True)
     with open(img_path, 'rb') as img_file_object:
         text = "Here's a plot of your progress over the last two weeks.\n"
-        if speed_week_kg is not None:
-            if speed_week_kg > 0:
-                text += "\nYou are currently in a <i>calorie surplus</i>.\n"
-                text += "You are gaining weight at an average rate of <i>%.2f kg/week</i>\n" % speed_week_kg
-            elif speed_week_kg <= 0:
-                text += "\nYou are currently in a <i>calorie deficit</i>.\n"
-                text += "You are losing weight at an average rate of <i>%.2f kg/week</i>\n" % abs(speed_week_kg)
+        text += text_deficit_maintenance_surplus(speed_week_kg, mean_mass)
 
         await bot.send_photo(message.chat.id, caption=text,
                              photo=img_file_object,
@@ -200,16 +212,10 @@ async def reply_plot(message: types.Message, user_data: dict):
 
 
 async def reply_plot_all(message: types.Message, user_data: dict):
-    img_path, speed_week_kg = await plot_user_data(message.chat.id, only_two_weeks=False)
+    img_path, speed_week_kg, mean_mass = await plot_user_data(message.chat.id, only_two_weeks=False)
     with open(img_path, 'rb') as img_file_object:
         text = "Here's a plot of your overall progress.\n"
-        if speed_week_kg is not None:
-            if speed_week_kg > 0:
-                text += "\nYou are in a <i>calorie surplus</i>.\n"
-                text += "You are gaining weight at an average rate of <i>%.2f kg/week</i>\n" % speed_week_kg
-            elif speed_week_kg <= 0:
-                text += "\nYou are in a <i>calorie deficit</i>.\n"
-                text += "You are losing weight at an average rate of <i>%.2f kg/week</i>\n" % abs(speed_week_kg)
+        text += text_deficit_maintenance_surplus(speed_week_kg, mean_mass)
 
         await bot.send_photo(message.chat.id, caption=text,
                              photo=img_file_object,
@@ -297,7 +303,7 @@ async def reply_csv_table(message: types.Message, user_data: dict):
 
         return
 
-    img_path, speed_week_kg = await plot_user_data(message.chat.id, only_two_weeks=False)
+    img_path, speed_week_kg, mean_mass = await plot_user_data(message.chat.id, only_two_weeks=False)
     with open(img_path, 'rb') as img_file_object:
         text = "<b>Data has been uploaded successfully.</b>\nTake a look at the plot."
         await bot.send_photo(message.chat.id, caption=text,
