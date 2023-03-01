@@ -92,6 +92,8 @@ async def plot_user_data(user_id: int, only_two_weeks: bool = False) -> tuple[st
 
     regression_coef = draw_plot_mass(date_list, mass_list, plot_file_path)
     speed_kg_week = round(regression_coef[0] * 7, 2) if regression_coef is not None else None
+    if len(mass_list) < 4:
+        speed_kg_week = None
 
     return plot_file_path, speed_kg_week, float(np.mean(mass_list))
 
