@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime, timedelta
 import aiosqlite
 import sqlite3
-from matplotlib.dates import date2num
+from matplotlib.dates import date2num, DateFormatter
 from matplotlib import pyplot
 import numpy as np
 from typing import Optional
@@ -105,13 +105,27 @@ def draw_plot_mass(date: list[datetime], mass: list[float], file_path: str) -> O
     regression_coef = np.polyfit(x, y, 1) if len(x) > 1 else None
     regression_func = np.poly1d(regression_coef) if len(x) > 1 else None
 
+    fig, ax = pyplot.subplots(figsize=[8, 5])
+
     pyplot.scatter(x, y)
+
+    if len(x) > 1:
+        limits = (min(mass) // 5 * 5 - 6, max(mass) // 5 * 5 + 6)
+    else:
+        limits = (64, 76)
+
+    pyplot.ylim(limits)
+
     if len(x) > 1:
         pyplot.plot(x, regression_func(x))
-    pyplot.xticks(x, map(lambda i: i.date(), date), rotation='vertical')
+
+    pyplot.ylabel('Bodyweight, kg')
+
+    ax.xaxis.set_major_formatter(DateFormatter('%d %b'))
+    pyplot.xticks(rotation=45)
     pyplot.grid()
     pyplot.tight_layout()
-    pyplot.savefig(file_path)
+    pyplot.savefig(file_path, dpi=300)
     pyplot.close('all')
 
     return regression_coef
