@@ -7,6 +7,8 @@ MAX_BODY_WEIGHT = 1000
 MAINTENANCE_THRESHOLD = 0.001
 
 TELEGRAM_TOKEN = os.environ.get('TELEGRAM_TOKEN')
+# LANGUAGE = os.environ.get('BODY_MASS_BOT_LANGUAGE') or 'ENG'
+
 
 class TelegramTokenNotSpecified(Exception):
     pass

@@ -11,6 +11,8 @@ from typing import Optional
 import requests
 from codecs import iterdecode
 
+from src import glossary
+
 sqlite_db_path = 'data/bodymass.sqlite'
 sqlite_db_users_mass = 'users_mass'
 
@@ -119,7 +121,7 @@ def draw_plot_mass(date: list[datetime], mass: list[float], file_path: str) -> O
     if len(x) > 1:
         pyplot.plot(x, regression_func(x))
 
-    pyplot.ylabel('Bodyweight, kg')
+    pyplot.ylabel(glossary.BODYWEIGHT_PLOT_LABEL)
 
     ax.xaxis.set_major_formatter(DateFormatter('%d %b'))
     pyplot.xticks(rotation=45)
