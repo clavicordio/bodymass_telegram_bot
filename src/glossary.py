@@ -10,7 +10,7 @@ COMMAND_LIST = "/enter_weight - ввести текущий вес\n\n" \
                "/start - показать меню \n\n" \
                "/info - информация и советы по использованию бота"
 
-ENTER_WEIGHT_BUTTON = "Ввести свой вес "
+ENTER_WEIGHT_BUTTON = "Ввести свой вес"
 ENTER_WEIGHT_COMMANDS = ['/enter_weight', ENTER_WEIGHT_BUTTON]
 
 SHOW_MENU_BUTTON = 'Показать меню'
